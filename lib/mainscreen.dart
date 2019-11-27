@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:my_helper/tab_screen2.dart';
-import 'package:my_helper/tab_screen3.dart';
+import 'package:my_plumber/tab_screen2.dart';
+import 'package:my_plumber/tab_screen3.dart';
+import 'package:my_plumber/tab_screen4.dart';
+import 'package:my_plumber/user.dart';
 import 'tab_screen.dart';
 
 class MainScreen extends StatefulWidget {
-  final String email;
+  final User user;
 
-  const MainScreen({Key key, this.email}) : super(key: key);
+  const MainScreen({Key key, this.user}) : super(key: key);
 
   @override
   _MainScreenState createState() => _MainScreenState();
@@ -22,10 +24,10 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     tabs = [
-      TabScreen("Home", widget.email),
-      TabScreen2("MyJobs"),
-      TabScreen2("Message"),
-      TabScreen3("Profile", widget.email),
+      TabScreen(user: widget.user),
+      TabScreen2(user: widget.user),
+      TabScreen3(user: widget.user),
+      TabScreen4(user: widget.user),
     ];
   }
 
@@ -39,7 +41,9 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setEnabledSystemUIOverlays([]);
+    //SystemChrome.setEnabledSystemUIOverlays([]);
+    SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(statusBarColor: Colors.deepOrange));
     return Scaffold(
       body: tabs[currentTabIndex],
       bottomNavigationBar: BottomNavigationBar(
@@ -50,22 +54,25 @@ class _MainScreenState extends State<MainScreen> {
 
         items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.search, color: Color.fromRGBO(159, 30, 99, 1)),
+            icon: Icon(Icons.search),
             title: Text("Jobs"),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.event, color: Color.fromRGBO(159, 30, 99, 1)),
+            icon: Icon(
+              Icons.list,
+            ),
+            title: Text("Posted Jobs"),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.event,
+            ),
             title: Text("My Jobs"),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.mail, color: Color.fromRGBO(159, 30, 99, 1)),
-            title: Text(
-              "Messages",
-              style: TextStyle(color: Colors.black),
+            icon: Icon(
+              Icons.person,
             ),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person, color: Color.fromRGBO(159, 30, 99, 1)),
             title: Text("Profile"),
           )
         ],

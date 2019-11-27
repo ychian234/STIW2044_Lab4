@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:my_helper/forgotpass.dart';
-import 'package:my_helper/mainscreen.dart';
-import 'package:my_helper/registrationscreen.dart';
+import 'package:my_plumber/mainscreen.dart';
+import 'package:my_plumber/registrationscreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:toast/toast.dart';
 import 'package:http/http.dart' as http;
 import 'package:progress_dialog/progress_dialog.dart';
+import 'user.dart';
 
 String urlLogin = "http://mobilehost2019.com/MyPlumber2/php/login_user.php";
+final TextEditingController _emcontroller = TextEditingController();
+String _email = "";
+final TextEditingController _passcontroller = TextEditingController();
+String _password = "";
+bool _isChecked = false;
 
 void main() => runApp(MyApp());
 
@@ -27,12 +32,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _emcontroller = TextEditingController();
-  String _email = "";
-  final TextEditingController _passcontroller = TextEditingController();
-  String _password = "";
-  bool _isChecked = false;
-
   @override
   void initState() {
     loadpref();
@@ -42,18 +41,20 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(statusBarColor: Colors.deepOrangeAccent));
     return WillPopScope(
         onWillPop: _onBackPressAppBar,
         child: Scaffold(
-          resizeToAvoidBottomInset: false,
+          resizeToAvoidBottomPadding: false,
           body: new Container(
             padding: EdgeInsets.all(30.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Image.asset(
-                  'assets/images/logo1.png',
-                  scale: 2.5,
+                  'assets/images/myhelper.png',
+                  scale: 3.5,
                 ),
                 TextField(
                     controller: _emcontroller,
@@ -75,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                   minWidth: 300,
                   height: 50,
                   child: Text('Login'),
-                  color: Color.fromRGBO(159, 30, 99, 1),
+                  color: Colors.deepOrange,
                   textColor: Colors.white,
                   elevation: 15,
                   onPressed: _onLogin,
@@ -103,8 +104,8 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 GestureDetector(
                     onTap: _onForgot,
-                    child: Text('Forgot Password',
-                        style: TextStyle(fontSize: 16))),
+                    child:
+                        Text('Forgot Account', style: TextStyle(fontSize: 16))),
               ],
             ),
           ),
@@ -114,9 +115,7 @@ class _LoginPageState extends State<LoginPage> {
   void _onLogin() {
     _email = _emcontroller.text;
     _password = _passcontroller.text;
-    if (_isEmailValid(_email) &&
-        _email != null &&
-        (_password.length > 4 && _password != null)) {
+    if (_isEmailValid(_email) && (_password.length > 4)) {
       ProgressDialog pr = new ProgressDialog(context,
           type: ProgressDialogType.Normal, isDismissible: false);
       pr.style(message: "Login in");
@@ -126,14 +125,20 @@ class _LoginPageState extends State<LoginPage> {
         "password": _password,
       }).then((res) {
         print(res.statusCode);
-        Toast.show(res.body, context,
+        var string = res.body;
+        List dres = string.split(",");
+        print(dres);
+        Toast.show(dres[0], context,
             duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
-        if (res.body == "login success") {
+        if (dres[0] == "success") {
           pr.dismiss();
+          print("Radius:");
+          print(dres);
+         User user = new User(name:dres[1],email: dres[2],phone:dres[3],radius: dres[4],credit: dres[5],rating: dres[6]);
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => MainScreen(email: _email)));
+                  builder: (context) => MainScreen(user: user)));
         } else {
           pr.dismiss();
         }
@@ -141,10 +146,7 @@ class _LoginPageState extends State<LoginPage> {
         pr.dismiss();
         print(err);
       });
-    } else {
-      Toast.show("Error, check your email or password", context,
-          duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
-    }
+    } else {}
   }
 
   void _onRegister() {
@@ -155,8 +157,6 @@ class _LoginPageState extends State<LoginPage> {
 
   void _onForgot() {
     print('Forgot');
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => ForgotPass()));
   }
 
   void _onChange(bool value) {
@@ -173,7 +173,7 @@ class _LoginPageState extends State<LoginPage> {
     _password = (prefs.getString('pass'));
     print(_email);
     print(_password);
-    if (_email != null) {
+    if (_email.length > 1) {
       _emcontroller.text = _email;
       _passcontroller.text = _password;
       setState(() {
